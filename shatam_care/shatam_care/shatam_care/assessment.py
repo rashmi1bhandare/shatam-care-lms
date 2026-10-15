@@ -116,6 +116,23 @@ def set_language_preference(course, language):
 	return language
 
 
+# Shatam Care operates in English, Hindi and Marathi only. The stock Language
+# table ships ~100 languages, and which ones happen to be `enabled` on a given
+# site is arbitrary (on the dev site it was 17 unrelated languages, with Hindi
+# and Marathi switched off), so we pin the supported set here rather than trust
+# that flag. This single list drives every language choice in the product: the
+# checkpoint-translation authoring dropdown, the learner's quiz-question
+# language, and the certificate language.
+SUPPORTED_LANGUAGE_CODES = ["en", "hi", "mr"]
+
+
 @frappe.whitelist()
 def get_available_languages():
-	return frappe.get_all("Language", filters={"enabled": 1}, fields=["name", "language_name"])
+	rows = frappe.get_all(
+		"Language",
+		filters={"name": ["in", SUPPORTED_LANGUAGE_CODES]},
+		fields=["name", "language_name"],
+	)
+	order = {code: index for index, code in enumerate(SUPPORTED_LANGUAGE_CODES)}
+	rows.sort(key=lambda row: order.get(row["name"], len(order)))
+	return rows

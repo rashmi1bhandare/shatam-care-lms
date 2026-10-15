@@ -275,3 +275,42 @@ def courses_i_can_author():
 		fields=["name", "title", "short_introduction", "published"],
 		order_by="creation desc",
 	)
+
+
+@frappe.whitelist()
+def get_course_lessons_for_teacher(course):
+	"""Lessons of a course, with review status, for the Content (authoring)
+	screen.
+
+	Routed through here rather than a direct `Course Lesson` resource read:
+	stock lms grants the Course Creator role only `if_owner` read on
+	`Course Lesson`, so a coordinator who holds the "content" capability but did
+	not personally create a lesson got a 403 on every row another teacher or the
+	admin authored. Authoring rights are checked here (admin / "content" /
+	instructor), then the rows are read with permissions bypassed.
+	"""
+	_check_can_author(course)
+	return frappe.get_all(
+		"Course Lesson",
+		filters={"course": course},
+		fields=["name", "title", "chapter", "youtube", "idx", "review_status"],
+		order_by="idx asc",
+		ignore_permissions=True,
+	)
+
+
+@frappe.whitelist()
+def get_lesson_for_teacher(lesson):
+	"""A single lesson (with review status) for the authoring screen. Same
+	reason as get_course_lessons_for_teacher: Course Creator's read is
+	owner-scoped, so a direct resource read 403s for lessons others created."""
+	course = frappe.db.get_value("Course Lesson", lesson, "course")
+	if not course:
+		frappe.throw(_("Lesson not found."))
+	_check_can_author(course)
+	return frappe.db.get_value(
+		"Course Lesson",
+		lesson,
+		["name", "title", "course", "chapter", "youtube", "review_status"],
+		as_dict=True,
+	)

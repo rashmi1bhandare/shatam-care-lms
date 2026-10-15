@@ -192,12 +192,14 @@ export async function getMyCourses(user: string): Promise<Course[]> {
 	});
 }
 
+// Routed through a capability-gated backend method, not a direct Course Lesson
+// read: stock lms gives the Course Creator role only if_owner read, so a
+// coordinator with the "content" capability 403'd on lessons others authored.
 export function getCourseLessonsWithReviewStatus(courseId: string): Promise<LessonSummary[]> {
-	return getList<LessonSummary>("Course Lesson", {
-		filters: [["course", "=", courseId]],
-		fields: ["name", "title", "chapter", "youtube", "idx", "review_status"],
-		orderBy: "idx asc",
-	});
+	return callMethod<LessonSummary[]>(
+		"shatam_care.shatam_care.content.get_course_lessons_for_teacher",
+		{ course: courseId },
+	);
 }
 
 // Creating chapters/lessons must also write the Chapter Reference /
@@ -236,31 +238,29 @@ export function getLessonForStudent(lessonId: string) {
 }
 
 export function getLessonForTeacher(lessonId: string) {
-	return getList<{
+	// Capability-gated backend method rather than a direct Course Lesson read,
+	// for the same if_owner reason as getCourseLessonsWithReviewStatus.
+	return callMethod<{
 		name: string;
 		title: string;
 		course: string;
 		chapter: string;
 		youtube: string;
 		review_status: ReviewStatus;
-	}>("Course Lesson", {
-		filters: [["name", "=", lessonId]],
-		fields: ["name", "title", "course", "chapter", "youtube", "review_status"],
-	}).then((rows) => rows[0]);
+	}>("shatam_care.shatam_care.content.get_lesson_for_teacher", { lesson: lessonId });
 }
 
+// Capability-gated backend method, not a direct LMS Video Checkpoint read: a
+// content-capable coordinator isn't a System Manager, so the doctype's role
+// permissions 403'd the direct list.
 export function getAllLessonCheckpoints(lessonId: string) {
-	return getList<{
+	return callMethod<{
 		name: string;
 		timestamp_seconds: number;
 		label: string;
 		question_text: string;
 		order: number;
-	}>("LMS Video Checkpoint", {
-		filters: [["lesson", "=", lessonId]],
-		fields: ["name", "timestamp_seconds", "label", "question_text", "order"],
-		orderBy: "timestamp_seconds asc",
-	});
+	}[]>("shatam_care.shatam_care.api.list_lesson_checkpoints", { lesson: lessonId });
 }
 
 export function createCheckpoint(
@@ -270,12 +270,14 @@ export function createCheckpoint(
 	questionText: string,
 	options: { option_text: string; is_correct: boolean }[],
 ) {
-	return createDoc("LMS Video Checkpoint", {
+	// Capability-gated backend method, not a direct create, for the same reason
+	// as getAllLessonCheckpoints.
+	return callMethod<{ name: string }>("shatam_care.shatam_care.api.create_checkpoint", {
 		lesson: lessonId,
 		timestamp_seconds: Math.round(timestampSeconds),
 		label,
 		question_text: questionText,
-		options,
+		options: JSON.stringify(options),
 	});
 }
 

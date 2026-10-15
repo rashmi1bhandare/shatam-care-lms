@@ -176,6 +176,56 @@ def _check_lesson_instructor(lesson):
 
 
 @frappe.whitelist()
+def list_lesson_checkpoints(lesson):
+	"""Checkpoints of a lesson for the authoring screen.
+
+	Routed through here rather than a direct `LMS Video Checkpoint` resource
+	read: a coordinator holding the "content" capability is not a System Manager,
+	so the doctype's role permissions 403'd the list. Authoring rights are
+	checked (admin / "content" / instructor), then the rows are read with
+	permissions bypassed. Correctness is deliberately omitted here, same as the
+	learner endpoint — only the editable summary fields are returned.
+	"""
+	_check_lesson_instructor(lesson)
+	return frappe.get_all(
+		"LMS Video Checkpoint",
+		filters={"lesson": lesson},
+		fields=["name", "timestamp_seconds", "label", "question_text", "order"],
+		order_by="timestamp_seconds asc",
+		ignore_permissions=True,
+	)
+
+
+@frappe.whitelist()
+def create_checkpoint(lesson, timestamp_seconds, label=None, question_text=None, options=None):
+	"""Create a checkpoint on a lesson. Gated on authoring rights and inserted
+	with permissions bypassed, so a content-capable coordinator who is not a
+	System Manager can author (a direct resource create 403'd them). `course` is
+	fetched from the lesson by the doctype, which the certificate eligibility
+	gate counts on."""
+	_check_lesson_instructor(lesson)
+	doc = frappe.new_doc("LMS Video Checkpoint")
+	doc.lesson = lesson
+	doc.timestamp_seconds = int(float(timestamp_seconds))
+	doc.label = label
+	doc.question_text = question_text
+	if options is not None:
+		parsed = frappe.parse_json(options)
+		for option in parsed:
+			doc.append(
+				"options",
+				{"option_text": option.get("option_text"), "is_correct": option.get("is_correct") and 1 or 0},
+			)
+	doc.insert(ignore_permissions=True)
+	return {
+		"name": doc.name,
+		"timestamp_seconds": doc.timestamp_seconds,
+		"label": doc.label,
+		"question_text": doc.question_text,
+	}
+
+
+@frappe.whitelist()
 def get_checkpoint_detail(checkpoint):
 	"""Full checkpoint incl. correct answers + existing translations — teacher
 	view only (the learner-facing endpoint deliberately omits correctness)."""
