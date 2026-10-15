@@ -93,7 +93,9 @@ member exactly the rights they need - nothing more.
 
 11. Click Content in the top bar -> open Safe Patient Handling -> "+ Add lesson".
     Chapter: "Module 1 — Foundations". Title: "Lifting a patient safely".
-    YouTube: dQw4w9WgXcQ. Create. (The lesson starts as a Draft.)
+    YouTube: https://www.youtube.com/watch?v=DOWDNBu9DkU
+    (the ID DOWDNBu9DkU on its own also works). Create.
+    (The lesson starts as a Draft.)
 
 12. >>> THE SIGNATURE AUTHORING TOOL <<<
     Open the lesson, let the video play a few seconds, and click
