@@ -65,11 +65,26 @@ export function createPlayer(
 	videoId: string,
 	events: YT.PlayerOptions["events"],
 ): YouTubePlayer {
-	return new window.YT.Player(elementId, {
+	// `host` is a real YT.Player option (privacy-enhanced embed) but is missing
+	// from @types/youtube's PlayerOptions, so the options are typed with it
+	// added explicitly.
+	const options: YT.PlayerOptions & { host?: string } = {
 		videoId,
-		playerVars: { rel: 0 },
+		// Privacy-enhanced domain: YouTube serves no ad-tracking / conversion
+		// pixels from here (the browser was blocking those anyway, flooding the
+		// console with CORS errors) and sets no tracking cookies until the
+		// learner actually plays — a better fit for low-data, privacy-sensitive
+		// caregivers than the default youtube.com embed.
+		host: "https://www.youtube-nocookie.com",
+		playerVars: {
+			rel: 0,
+			// Lets the IFrame API address our window for postMessage, quieting
+			// the "Unable to post message … origin http://localhost:3000" warning.
+			origin: typeof window !== "undefined" ? window.location.origin : undefined,
+		},
 		events,
-	});
+	};
+	return new window.YT.Player(elementId, options);
 }
 
 export function getPlayerState() {

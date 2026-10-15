@@ -16,12 +16,12 @@ export default function DashboardPage() {
 					<>
 						<DashboardCard
 							href="/courses"
-							title="My Courses"
+							title="Student Courses"
 							description="Continue your lessons, quizzes, and assessments."
 						/>
 						<DashboardCard
 							href="/certificates"
-							title="My Certificates"
+							title="Student Certificates"
 							description="View and download the certificates you've earned."
 						/>
 					</>

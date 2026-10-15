@@ -187,44 +187,58 @@ export default function FinalAssessmentPage({ params }: { params: Promise<{ id: 
 					return (
 						<div
 							key={row.question}
-							className="bg-white rounded-lg border border-green-100 p-5 space-y-3"
+							className="bg-white rounded-lg border border-green-100 p-5 sm:p-6 space-y-4"
 						>
-							<div className="flex gap-2">
-								<span className="text-gray-400 text-sm">{index + 1}.</span>
+							<div className="flex gap-3">
+								<span className="flex-shrink-0 w-7 h-7 rounded-full bg-green-100 text-green-800 text-sm font-semibold flex items-center justify-center">
+									{index + 1}
+								</span>
 								<div
-									className="text-gray-800 flex-1"
+									className="text-base sm:text-lg text-gray-900 font-medium flex-1 leading-snug [&_p]:m-0"
 									dangerouslySetInnerHTML={{ __html: question.question }}
 								/>
 							</div>
 							{multiple && (
-								<p className="text-xs text-gray-500 ml-6">Select all that apply</p>
+								<p className="text-xs font-medium text-green-700 sm:ml-10">Select all that apply</p>
 							)}
-							<div className="space-y-2 ml-6">
-								{options.map((option) => (
-									<label key={option} className="flex items-start gap-2 text-sm cursor-pointer">
-										<input
-											type={multiple ? "checkbox" : "radio"}
-											name={`q-${row.question}`}
-											checked={selected.includes(option)}
-											onChange={() => toggleAnswer(row.question, option, multiple)}
-											className="mt-1"
-										/>
-										<span>{option}</span>
-									</label>
-								))}
+							<div className="space-y-2.5 sm:ml-10">
+								{options.map((option) => {
+									const isSelected = selected.includes(option);
+									return (
+										<button
+											type="button"
+											key={option}
+											onClick={() => toggleAnswer(row.question, option, multiple)}
+											className={`w-full text-left rounded-lg border-2 px-4 py-3 text-base flex items-center gap-3 transition-colors ${
+												isSelected
+													? "border-green-600 bg-green-50 text-green-900"
+													: "border-gray-200 bg-white text-gray-800 hover:border-green-300"
+											}`}
+										>
+											<span
+												className={`flex-shrink-0 w-6 h-6 border-2 flex items-center justify-center text-white text-sm font-bold ${
+													multiple ? "rounded-md" : "rounded-full"
+												} ${isSelected ? "border-green-600 bg-green-600" : "border-gray-300"}`}
+											>
+												{isSelected ? "✓" : ""}
+											</span>
+											<span>{option}</span>
+										</button>
+									);
+								})}
 							</div>
 						</div>
 					);
 				})}
 			</div>
 
-			<div className="flex items-center gap-4">
+			<div className="flex flex-col-reverse gap-2">
 				<button
 					onClick={handleSubmit}
 					disabled={submitting || !allAnswered}
-					className="bg-green-700 text-white rounded px-6 py-2.5 font-medium disabled:opacity-50"
+					className="w-full bg-green-700 text-white rounded-lg px-6 py-3 text-base font-semibold disabled:opacity-50 hover:bg-green-800 transition-colors"
 				>
-					{submitting ? "Submitting..." : "Submit assessment"}
+					{submitting ? "Submitting..." : allAnswered ? "Submit assessment" : `Answer all ${quiz.questions.length} to submit`}
 				</button>
 				<span className="text-sm text-gray-500">
 					{answeredCount} of {quiz.questions.length} answered
