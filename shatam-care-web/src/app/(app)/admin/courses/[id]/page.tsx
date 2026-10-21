@@ -331,34 +331,45 @@ function AssessmentSection({
 			<h2 className="font-semibold text-green-800">
 				Final Assessment: {detail.final_assessment?.title}
 			</h2>
-			<ul className="space-y-2">
+			<div className="space-y-3">
 				{questions.map((question, index) => (
-					<li key={question.name} className="text-sm border-b pb-2">
-						<div className="flex justify-between gap-2">
-							<div
-								className="flex-1"
-								dangerouslySetInnerHTML={{ __html: `${index + 1}. ${question.question}` }}
-							/>
+					<div key={question.name} className="rounded-lg border border-gray-200 p-4 space-y-2">
+						<div className="flex justify-between gap-3">
+							<div className="flex gap-2.5 flex-1">
+								<span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 text-green-800 text-xs font-semibold flex items-center justify-center">
+									{index + 1}
+								</span>
+								<div
+									className="flex-1 text-gray-900 font-medium [&_p]:m-0"
+									dangerouslySetInnerHTML={{ __html: question.question }}
+								/>
+							</div>
 							<button
 								onClick={async () => {
 									await removeAssessmentQuestion(quizName, question.name);
 									await loadQuestions();
 								}}
-								className="text-red-600 text-xs underline shrink-0"
+								className="text-red-600 text-sm shrink-0 hover:underline"
 							>
 								Remove
 							</button>
 						</div>
-						<ul className="ml-4 mt-1 text-gray-500 text-xs">
+						{!!question.multiple && (
+							<p className="ml-8 text-xs font-medium text-green-700">Select all that apply</p>
+						)}
+						<ul className="ml-8 space-y-1.5">
 							{[question.option_1, question.option_2, question.option_3, question.option_4]
 								.filter(Boolean)
 								.map((option) => (
-									<li key={option}>&bull; {option}</li>
+									<li key={option} className="flex items-center gap-2 text-sm text-gray-700">
+										<span className="w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+										{option}
+									</li>
 								))}
 						</ul>
-					</li>
+					</div>
 				))}
-			</ul>
+			</div>
 			{questions.length === 0 && (
 				<p className="text-sm text-gray-500">No questions yet — add at least one.</p>
 			)}
@@ -397,60 +408,84 @@ function AddQuestionForm({ quizName, onAdded }: { quizName: string; onAdded: () 
 	}
 
 	return (
-		<form onSubmit={handleAdd} className="border-t pt-3 space-y-2">
+		<form onSubmit={handleAdd} className="border-t pt-4 space-y-3">
+			<div>
+				<h3 className="font-semibold text-green-800">Add a question</h3>
+				<p className="text-xs text-gray-500 mt-0.5">
+					Mark &ldquo;Correct&rdquo; next to each right answer. Marking more than one makes it a
+					multi-answer question. Up to 4 options.
+				</p>
+			</div>
 			<textarea
 				value={text}
 				onChange={(e) => setText(e.target.value)}
-				placeholder="Question"
-				className="w-full border rounded px-3 py-2 text-sm"
+				placeholder="Type the question here"
+				className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base min-h-[72px]"
 				required
 			/>
-			{options.map((option, i) => (
-				<div key={i} className="flex items-center gap-2">
-					<input
-						type="checkbox"
-						checked={correct.includes(i)}
-						onChange={() =>
-							setCorrect((prev) =>
-								prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i],
-							)
-						}
-						title="Correct answer"
-					/>
-					<input
-						value={option}
-						onChange={(e) => {
-							const next = [...options];
-							next[i] = e.target.value;
-							setOptions(next);
-						}}
-						placeholder={`Option ${i + 1}`}
-						className="flex-1 border rounded px-3 py-2 text-sm"
-						required
-					/>
-				</div>
-			))}
+			<div className="space-y-2">
+				{options.map((option, i) => {
+					const isCorrect = correct.includes(i);
+					return (
+						<div key={i} className="flex items-center gap-2">
+							<input
+								value={option}
+								onChange={(e) => {
+									const next = [...options];
+									next[i] = e.target.value;
+									setOptions(next);
+								}}
+								placeholder={`Option ${i + 1}`}
+								className="flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-base"
+								required
+							/>
+							<button
+								type="button"
+								onClick={() =>
+									setCorrect((prev) =>
+										prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i],
+									)
+								}
+								className={`flex-shrink-0 rounded-lg border-2 px-3 py-2 text-sm font-medium flex items-center gap-1.5 transition-colors ${
+									isCorrect
+										? "border-green-600 bg-green-50 text-green-800"
+										: "border-gray-200 text-gray-500 hover:border-green-300"
+								}`}
+							>
+								<span
+									className={`w-4 h-4 rounded-sm border flex items-center justify-center text-white text-[10px] font-bold ${
+										isCorrect ? "bg-green-600 border-green-600" : "border-gray-400"
+									}`}
+								>
+									{isCorrect ? "✓" : ""}
+								</span>
+								Correct
+							</button>
+						</div>
+					);
+				})}
+			</div>
 			{options.length < 4 && (
-				<button
-					type="button"
-					onClick={() => setOptions([...options, ""])}
-					className="text-sm text-green-700 underline"
-				>
-					+ Add option
-				</button>
+				<div>
+					<button
+						type="button"
+						onClick={() => setOptions([...options, ""])}
+						className="text-sm text-green-700 font-medium hover:underline"
+					>
+						+ Add option
+					</button>
+				</div>
 			)}
 			{error && <p className="text-sm text-red-600">{error}</p>}
-			<button
-				type="submit"
-				disabled={saving}
-				className="bg-green-700 text-white rounded px-4 py-2 text-sm disabled:opacity-50"
-			>
-				{saving ? "Adding..." : "Add question"}
-			</button>
-			<p className="text-xs text-gray-500">
-				Tick the checkbox next to each correct option. Ticking more than one makes it a
-				multi-answer question. Max 4 options.
-			</p>
+			<div className="pt-1">
+				<button
+					type="submit"
+					disabled={saving}
+					className="bg-green-700 text-white rounded-lg px-5 py-2.5 text-base font-semibold disabled:opacity-50 hover:bg-green-800 transition-colors"
+				>
+					{saving ? "Adding..." : "Add question"}
+				</button>
+			</div>
 		</form>
 	);
 }

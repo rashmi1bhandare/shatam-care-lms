@@ -186,50 +186,78 @@ export default function LessonPlayerPage({
 				<div id={PLAYER_ELEMENT_ID} className="w-full h-full" />
 
 				{activeCheckpoint && (
-					<div className="absolute inset-0 bg-black/80 flex items-center justify-center p-6">
-						<div className="bg-white rounded-lg p-6 max-w-md w-full space-y-4">
-							<p className="font-medium text-gray-800">{activeCheckpoint.question_text}</p>
+					<div className="absolute inset-0 bg-black/85 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+						<div className="bg-white rounded-xl p-5 sm:p-7 max-w-lg w-full space-y-5 shadow-2xl">
+							<div className="space-y-1.5">
+								<p className="text-xs font-semibold uppercase tracking-wide text-green-700">
+									Quick check
+								</p>
+								<p className="text-lg sm:text-xl font-semibold text-gray-900 leading-snug">
+									{activeCheckpoint.question_text}
+								</p>
+							</div>
 
 							{answerResult === null ? (
 								<>
-									<div className="space-y-2">
-										{activeCheckpoint.options?.map((option, index) => (
-											<label
-												key={`${option.option_text}-${index}`}
-												className="flex items-center gap-2 text-sm"
-											>
-												<input
-													type="radio"
-													name="checkpoint-option"
-													checked={selectedIndex === index}
-													onChange={() => setSelectedIndex(index)}
-												/>
-												{option.option_text}
-											</label>
-										))}
+									<div className="space-y-2.5">
+										{activeCheckpoint.options?.map((option, index) => {
+											const isSelected = selectedIndex === index;
+											return (
+												<button
+													type="button"
+													key={`${option.option_text}-${index}`}
+													onClick={() => setSelectedIndex(index)}
+													className={`w-full text-left rounded-lg border-2 px-4 py-3 text-base flex items-center gap-3 transition-colors ${
+														isSelected
+															? "border-green-600 bg-green-50 text-green-900"
+															: "border-gray-200 bg-white text-gray-800 hover:border-green-300"
+													}`}
+												>
+													<span
+														className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center text-white text-sm font-bold ${
+															isSelected ? "border-green-600 bg-green-600" : "border-gray-300"
+														}`}
+													>
+														{isSelected ? "✓" : ""}
+													</span>
+													<span>{option.option_text}</span>
+												</button>
+											);
+										})}
 									</div>
 									<button
 										onClick={handleAnswerSubmit}
 										disabled={selectedIndex === null}
-										className="w-full bg-green-700 text-white rounded py-2 text-sm disabled:opacity-50"
+										className="w-full bg-green-700 text-white rounded-lg py-3 text-base font-semibold disabled:opacity-50 hover:bg-green-800 transition-colors"
 									>
 										Submit answer
 									</button>
 								</>
 							) : (
 								<>
-									<p
-										className={
-											answerResult === "correct" ? "text-green-700" : "text-amber-700"
-										}
+									<div
+										className={`rounded-lg p-4 border ${
+											answerResult === "correct"
+												? "bg-green-50 border-green-200"
+												: "bg-amber-50 border-amber-200"
+										}`}
 									>
-										{answerResult === "correct"
-											? "Correct!"
-											: "That wasn't quite right — let's continue."}
-									</p>
+										<p
+											className={`font-semibold text-base ${
+												answerResult === "correct" ? "text-green-800" : "text-amber-800"
+											}`}
+										>
+											{answerResult === "correct" ? "✓ Correct!" : "Not quite — that's okay"}
+										</p>
+										<p className="text-sm text-gray-600 mt-1">
+											{answerResult === "correct"
+												? "Nice work. Let's keep going."
+												: "You can review it later — let's continue the lesson."}
+										</p>
+									</div>
 									<button
 										onClick={handleResume}
-										className="w-full bg-green-700 text-white rounded py-2 text-sm"
+										className="w-full bg-green-700 text-white rounded-lg py-3 text-base font-semibold hover:bg-green-800 transition-colors"
 									>
 										Continue watching
 									</button>

@@ -28,12 +28,6 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
 				    Administrator holds every role and would otherwise get a
 				    learner dashboard it has no use for. */}
 				<nav className="flex items-center gap-4 text-sm flex-wrap justify-end">
-					{isLearner && (
-						<>
-							<Link href="/courses">Courses</Link>
-							<Link href="/certificates">Certificates</Link>
-						</>
-					)}
 					{can("content") && <Link href="/teach">Content</Link>}
 					{can("courses") && <Link href="/admin/courses">Courses</Link>}
 					{can("people") && (
@@ -44,6 +38,17 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
 					)}
 					{can("review") && <Link href="/admin/reviews">Review</Link>}
 					{can("certificates") && <Link href="/evaluate">Approvals</Link>}
+					{isLearner && (
+						<>
+							{/* Student views come AFTER the admin/evaluator tabs: staff who
+							    also hold the learner view prefer to see their actions first
+							    and the student screens last. Labelled "Student …" to stay
+							    distinct from the admin "Courses" (Manage Courses) above. For
+							    a pure student there are no admin tabs, so these simply lead. */}
+							<Link href="/courses">Student Courses</Link>
+							<Link href="/certificates">Student Certificates</Link>
+						</>
+					)}
 					<Link href="/account" className="opacity-90 underline decoration-dotted">
 						{user.fullName}
 					</Link>

@@ -214,6 +214,14 @@ The app at :3000 shows an error or won't load
     time or memory - give Docker Desktop at least 4 GB RAM
     (Settings -> Resources) and try "down -v" then "up" again.
 
+Error mentions a missing table like "tabDefaultValue"
+    The first run was interrupted (often an out-of-memory kill) before
+    the site's database finished building. Raise Docker's memory to
+    4 GB+ (Settings -> Resources), then just run "up" again:
+        docker compose -f docker-compose.standalone.yml up -d
+    It detects the half-built site and rebuilds it automatically. If it
+    still fails, start clean with "down -v" then "up -d".
+
 Everything is broken and you just want a clean restart
     docker compose -f docker-compose.standalone.yml down -v
     docker compose -f docker-compose.standalone.yml up -d

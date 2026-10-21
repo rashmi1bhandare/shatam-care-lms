@@ -114,19 +114,55 @@ done
 sed -i '/^$/d' sites/apps.txt
 
 # --- site ---------------------------------------------------------------------
-# Deliberately NOT `--force`. Because the bench used to live in the container's
-# writable layer while MariaDB had a volume, recreating the container re-ran this
-# script and --force silently dropped and recreated the site database, destroying
-# every course, learner and certificate while the DB volume survived around it.
-# Creating the site only when it is genuinely absent removes that failure mode.
-if [ ! -d "sites/$SITE" ]; then
-    echo "==> Creating site $SITE"
-    bench new-site "$SITE" \
+# Whether the site's DATABASE is actually built, not merely whether the site
+# DIRECTORY exists. `bench new-site` writes sites/<site>/site_config.json early
+# and only then populates the database, so an interrupted first run (slow host,
+# low Docker memory, a MariaDB that accepted a ping before it was ready, a
+# Ctrl-C) leaves the directory behind with an empty database. Guarding on the
+# directory alone then skips new-site forever, and every later command fails
+# against missing core tables — the infamous "tabDefaultValue doesn't exist".
+# We check for a core table directly instead; `tabDefaultValue` is created when
+# frappe itself is installed, so its presence means the site is genuinely built.
+site_initialised() {
+    [ -f "sites/$SITE/site_config.json" ] || return 1
+    ./env/bin/python - "$SITE" <<'PY'
+import json, sys
+try:
+    import pymysql
+    cfg = json.load(open(f"sites/{sys.argv[1]}/site_config.json"))
+    conn = pymysql.connect(
+        host="mariadb", user=cfg["db_name"], password=cfg["db_password"],
+        database=cfg["db_name"], connect_timeout=10,
+    )
+    cur = conn.cursor()
+    cur.execute("SHOW TABLES LIKE 'tabDefaultValue'")
+    sys.exit(0 if cur.fetchone() else 1)
+except Exception:
+    sys.exit(1)
+PY
+}
+
+if site_initialised; then
+    # A real, populated site — never touch it. The check above guarantees this
+    # branch is only taken when the database is actually built, so a site with
+    # real data (courses, learners, certificates) is always preserved.
+    echo "==> Site $SITE already provisioned, preserving it"
+else
+    if [ -d "sites/$SITE" ]; then
+        # Directory present but database not built: a broken, interrupted run.
+        # Recreate with --force. This cannot destroy real data, because a site
+        # holding data would have passed site_initialised above and never reach
+        # here.
+        echo "==> sites/$SITE exists but its database is not initialised (an interrupted earlier run) — recreating it"
+        FORCE_NEW_SITE="--force"
+    else
+        echo "==> Creating site $SITE"
+        FORCE_NEW_SITE=""
+    fi
+    bench new-site "$SITE" $FORCE_NEW_SITE \
         --mariadb-root-password 123 \
         --admin-password admin \
         --no-mariadb-socket
-else
-    echo "==> Site $SITE already exists, preserving it"
 fi
 
 installed="$(bench --site "$SITE" list-apps 2>/dev/null || true)"
