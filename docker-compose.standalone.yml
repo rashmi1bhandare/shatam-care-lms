@@ -12,6 +12,13 @@
 # GitHub into a volume, then the normal provisioning (init.sh) runs from there.
 # Later runs skip both and start in under a minute.
 #
+# GIVE DOCKER ENOUGH MEMORY (especially on Windows/macOS Docker Desktop):
+# at least 4 GB (Settings -> Resources). Building the site and its assets is
+# memory-hungry; with too little, the first run gets OOM-killed partway and
+# leaves a half-created site. init.sh now detects such a half-created site and
+# rebuilds it on the next `up`, but it's better not to hit it — raise the limit
+# first. If a first run was interrupted for any reason, just run `up` again.
+#
 # How it differs from docker-compose.yml (the developer file): the developer
 # file bind-mounts your working copy so local edits flow into the stack; this
 # file replaces that mount with a `source` volume populated by the bootstrap
