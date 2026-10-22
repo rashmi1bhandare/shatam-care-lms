@@ -6,7 +6,7 @@ set -o pipefail
 
 BENCH=/home/frappe/frappe-bench
 SITE=lms.localhost
-LMS_REPO="${LMS_REPO:-https://github.com/vaibhavj1203/shatam-care-lms}"
+LMS_REPO="${LMS_REPO:-https://github.com/rashmi1bhandare/shatam-care-lms}"
 # The fork's default branch holds only a README; the actual frappe/lms code
 # lives on develop. Cloning the default branch yields a directory that is not a
 # Frappe app at all, and bench fails with a confusing error late in the run.
