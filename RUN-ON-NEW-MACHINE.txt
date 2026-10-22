@@ -56,11 +56,11 @@ lives inside Docker.
 
 macOS / Linux:
 
-    curl -LO https://raw.githubusercontent.com/vaibhavj1203/shatam-care-lms/shatam-care-initial-commit/docker-compose.standalone.yml
+    curl -LO https://raw.githubusercontent.com/rashmi1bhandare/shatam-care-lms/shatam-care-initial-commit/docker-compose.standalone.yml
 
 Windows (PowerShell):
 
-    curl.exe -LO https://raw.githubusercontent.com/vaibhavj1203/shatam-care-lms/shatam-care-initial-commit/docker-compose.standalone.yml
+    curl.exe -LO https://raw.githubusercontent.com/rashmi1bhandare/shatam-care-lms/shatam-care-initial-commit/docker-compose.standalone.yml
 
 Confirm it arrived (should list the file):
 

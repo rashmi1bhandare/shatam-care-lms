@@ -52,7 +52,7 @@ services:
           git -C /source checkout -f -B "$${PROJECT_BRANCH}" FETCH_HEAD
         fi
     environment:
-      - PROJECT_REPO=${PROJECT_REPO:-https://github.com/vaibhavj1203/shatam-care-lms}
+      - PROJECT_REPO=${PROJECT_REPO:-https://github.com/rashmi1bhandare/shatam-care-lms}
       - PROJECT_BRANCH=${PROJECT_BRANCH:-shatam-care-initial-commit}
     volumes:
       - source:/source
